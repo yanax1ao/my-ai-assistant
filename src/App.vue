@@ -1,36 +1,70 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import { chatWithDeepseek } from "./api/deepseek";
+import { streamChat } from "./api/deepseek";
 import { marked } from "marked";
 
-const replyMessage = ref("");
 const userInput = ref("");
 const loading = ref(false);
-
-const messages = ref([{ role: "system", content: "你是一个友好的助手" }]);
+const isStreaming = ref(false);
+const messages = ref<Array<{ role: string; content: string }>>([]);
+let abortController: AbortController | null = null;
+const stopGeneration = () => {
+  if (abortController) {
+    abortController.abort();
+    abortController = null;
+    loading.value = false;
+    isStreaming.value = false;
+    const lastMessage = messages.value[messages.value.length - 1];
+    if (
+      lastMessage &&
+      lastMessage.role === "assistant" &&
+      !lastMessage.content
+    ) {
+      messages.value.pop();
+    }
+  }
+};
 const sendMessage = async () => {
-  if (!userInput.value.trim()) return;
+  // 空输入直接返回
+  if (!userInput.value.trim() && loading.value === true) return;
+  // 保存用户输入并清空输入框
   const userMessage = userInput.value;
   userInput.value = "";
-  replyMessage.value = "";
+  // 添加用户消息到列表
   messages.value.push({ role: "user", content: userMessage });
+  const assistantMessageIndex = messages.value.length;
+  messages.value.push({ role: "assistant", content: "" });
+  isStreaming.value = true;
   loading.value = true;
+  abortController = new AbortController();
   try {
-    const reply = await chatWithDeepseek(messages.value);
-    messages.value.push({ role: "assistant", content: reply });
+    const history = messages.value.slice(0, assistantMessageIndex + 1);
+    await streamChat(
+      history,
+      (content) => {
+        messages.value[assistantMessageIndex].content += content;
+        // messages.value.push({ role: "assistant", content: reply });
+      },
+      abortController.signal,
+    );
     loading.value = false;
-  } catch (err) {
+  } catch (err: any) {
+    if (err.name === "AbortError") {
+      console.log("用户停止了生成");
+    } else {
+      console.error("流式请求失败", err);
+      messages.value[assistantMessageIndex].content = "⚠️ 出错：" + err.message;
+    }
+  } finally {
     loading.value = false;
-    messages.value.push({ role: "assistant", content: "抱歉，出错了" });
-    console.log(err);
+    isStreaming.value = false;
+    abortController = null;
   }
 };
 
 const escapeHtml = (str: string) => {
   const div = document.createElement("div");
   div.textContent = str;
-  console.log("div.innerHTM", div.innerHTML);
-
   return div.innerHTML;
 };
 const formatMessage = (msg: { role: string; content: string }) => {
@@ -68,10 +102,6 @@ const copyMessage = async (content: string) => {
           📋
         </button>
       </div>
-      <div v-if="loading" class="message assistant">
-        <div class="avatar">🤖</div>
-        <div class="bubble thinking">思考中...</div>
-      </div>
     </div>
     <div class="input-area">
       <input
@@ -80,7 +110,10 @@ const copyMessage = async (content: string) => {
         placeholder="输入消息..."
         :disabled="loading"
       />
-      <button @click="sendMessage" :disabled="loading">发送</button>
+      <button v-if="!isStreaming" @click="sendMessage" :disabled="loading">
+        发送
+      </button>
+      <button v-else @click="stopGeneration" class="stop-btn">⏹️ 停止</button>
     </div>
   </div>
 </template>
@@ -186,5 +219,8 @@ h1 {
 }
 .copy-btn:hover {
   opacity: 1 !important;
+}
+.stop-btn {
+  background: #dc3545 !important;
 }
 </style>

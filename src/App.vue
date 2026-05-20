@@ -26,18 +26,18 @@ const sendMessage = async () => {
   }
 };
 
-// const escapeHtml = (str: string) => {
-//   const div = document.createElement("div");
-//   div.textContent = str;
-//   console.log("div.innerHTM", div.innerHTML);
+const escapeHtml = (str: string) => {
+  const div = document.createElement("div");
+  div.textContent = str;
+  console.log("div.innerHTM", div.innerHTML);
 
-//   return div.innerHTML;
-// };
+  return div.innerHTML;
+};
 const formatMessage = (msg: { role: string; content: string }) => {
   if (msg.role === "assistant") {
     return marked.parse(msg.content, { async: false }) as string;
   }
-  return msg.content;
+  return escapeHtml(msg.content);
 };
 const copyMessage = async (content: string) => {
   try {

@@ -2,12 +2,77 @@
 import { ref } from "vue";
 import { streamChat } from "./api/deepseek";
 import { marked } from "marked";
+import * as pdfParseModule from "pdf-parse";
+const pdfParse = (pdfParseModule as any).default || pdfParseModule;
 
 const userInput = ref("");
 const loading = ref(false);
 const isStreaming = ref(false);
 const messages = ref<Array<{ role: string; content: string }>>([]);
 let abortController: AbortController | null = null;
+
+// rag
+const uploadedText = ref(""); //原始文档文本
+const chunks = ref<string[]>([]); //切分后的段落
+const fileName = ref(""); //文件名
+
+const handleFileUpload = async (event: Event) => {
+  const input = event.target as HTMLInputElement;
+  const file = input.files?.[0];
+  if (!file) return;
+  fileName.value = file.name;
+  let text = "";
+  try {
+    if (file.type === "text/plain") {
+      text = await file.text();
+    } else if (file.type === "application/pdf") {
+      // const arrayBuffer = await file.arrayBuffer();
+      // const pdfData = await pdfParse(arrayBuffer);
+      // console.log(pdfData);
+      // text = pdfData.text;
+
+      const arrayBuffer = await file.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer); // 转换为 Buffer
+      const pdfData = await pdfParse(buffer);
+      text = pdfData.text;
+    } else {
+      alert("请上传txt或pdf格式的文件");
+      return;
+    }
+    uploadedText.value = text;
+    chunks.value = text.split(/\n\s*\n/).filter((c) => c.trim().length > 0);
+    alert(`文件加载完成，共${chunks.value.length}个段落。现在可以开始提问了！`);
+  } catch (err) {
+    console.error("文件解析失败", err);
+    alert("文件解析失败，请重试");
+  }
+};
+
+const retrieveRelevantChunks = (
+  question: string,
+  topK: number = 3,
+): string[] => {
+  if (chunks.value.length === 0) return [];
+  const keywords = question
+    .toLowerCase()
+    .split(/\s+/)
+    .filter((w) => w.length > 1);
+  const scores = chunks.value.map((c) => {
+    const lowerChunk = c.toLowerCase();
+    let score = 0;
+    keywords.map((key) => {
+      if (lowerChunk.includes(key)) {
+        score++;
+      }
+    });
+    return score;
+  });
+  const chunckIdx = scores.map((score, index) => ({ score, index }));
+  chunckIdx.sort((a, b) => b.score - a.score);
+  const idxs = chunckIdx.slice(0, topK).map((item) => item.index);
+  return idxs.map((idx) => chunks.value[idx]);
+};
+
 const stopGeneration = () => {
   if (abortController) {
     abortController.abort();
@@ -29,21 +94,39 @@ const sendMessage = async () => {
   if (!userInput.value.trim() && loading.value === true) return;
   // 保存用户输入并清空输入框
   const userMessage = userInput.value;
-  userInput.value = "";
-  // 添加用户消息到列表
+  // 1. 先在界面上显示用户原始问题
   messages.value.push({ role: "user", content: userMessage });
+  userInput.value = "";
+
+  let context = "";
+  if (chunks.value.length > 0) {
+    const content = retrieveRelevantChunks(userMessage, 3);
+    if (content.length > 0) {
+      context = `以下是相关文档内容:\n\n${content.join("\n\n")}`;
+    }
+  }
+  // 3. 构建最终发给 AI 的用户消息内容（包含上下文）
+  const finalUserContent = context
+    ? `基于以下文档内容回答问题。\n\n${context}\n\n问题：${userMessage}`
+    : userMessage;
+
+  // 添加用户消息+搜到的文档 到列表
   const assistantMessageIndex = messages.value.length;
   messages.value.push({ role: "assistant", content: "" });
   isStreaming.value = true;
   loading.value = true;
   abortController = new AbortController();
   try {
-    const history = messages.value.slice(0, assistantMessageIndex + 1);
+    const historyForAPI = messages.value.slice(0, -1); // 去掉最后一条空助手消息
+    historyForAPI[historyForAPI.length - 1] = {
+      role: "user",
+      content: finalUserContent,
+    };
+
     await streamChat(
-      history,
+      historyForAPI,
       (content) => {
         messages.value[assistantMessageIndex].content += content;
-        // messages.value.push({ role: "assistant", content: reply });
       },
       abortController.signal,
     );
@@ -85,7 +168,13 @@ const copyMessage = async (content: string) => {
 
 <template>
   <div class="chat-container">
-    <h1>🤖 我的 AI 助手</h1>
+    <h1>🤖 AI 助手 + RAG（文档问答）</h1>
+    <!-- 文件上传区域 -->
+    <div class="upload-area">
+      <input type="file" accept=".txt,.pdf" @change="handleFileUpload" />
+      <span v-if="fileName">已加载：{{ fileName }}</span>
+      <span v-else>上传 .txt 或 .pdf 文件，AI 将基于内容回答问题</span>
+    </div>
     <div class="message-list">
       <div
         v-for="(item, idx) in messages"
@@ -127,6 +216,16 @@ const copyMessage = async (content: string) => {
   display: flex;
   flex-direction: column;
   font-family: sans-serif;
+}
+.upload-area {
+  background: #f0f0f0;
+  padding: 8px 12px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 h1 {
   text-align: center;

@@ -1,9 +1,13 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import { streamChat } from "./api/deepseek";
+import { chatWithTools } from "./api/deepseek";
 import { marked } from "marked";
-import * as pdfParseModule from "pdf-parse";
-const pdfParse = (pdfParseModule as any).default || pdfParseModule;
+import { tools, executeTool } from "./tools";
+//  @ts-nocheck
+// import * as pdfjsLib from "pdfjs-dist";
+// 引入 worker 文件（Vite 会将此文件作为静态资源处理）
+// import workerUrl from "pdfjs-dist/build/pdf.worker.mjs?url";
+// pdfjsLib.GlobalWorkerOptions.workerSrc = workerUrl;
 
 const userInput = ref("");
 const loading = ref(false);
@@ -25,17 +29,29 @@ const handleFileUpload = async (event: Event) => {
   try {
     if (file.type === "text/plain") {
       text = await file.text();
-    } else if (file.type === "application/pdf") {
-      // const arrayBuffer = await file.arrayBuffer();
-      // const pdfData = await pdfParse(arrayBuffer);
-      // console.log(pdfData);
-      // text = pdfData.text;
-
-      const arrayBuffer = await file.arrayBuffer();
-      const buffer = Buffer.from(arrayBuffer); // 转换为 Buffer
-      const pdfData = await pdfParse(buffer);
-      text = pdfData.text;
-    } else {
+    }
+    //  else if (file.type === "application/pdf") {
+    //   try {
+    //     const arrayBuffer = await file.arrayBuffer();
+    //     const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+    //     const pdf = await loadingTask.promise;
+    //     let fullText = "";
+    //     for (let i = 1; i <= pdf.numPages; i++) {
+    //       const page = await pdf.getPage(i);
+    //       const textContent = await page.getTextContent();
+    //       const pageText = textContent.items
+    //         .map((item: any) => item.str)
+    //         .join(" ");
+    //       fullText += pageText + "\n";
+    //     }
+    //     text = fullText;
+    //   } catch (error) {
+    //     console.error("PDF 解析失败", error);
+    //     alert("PDF 解析失败，请确保文件不是扫描图片版");
+    //     return;
+    //   }
+    // }
+    else {
       alert("请上传txt或pdf格式的文件");
       return;
     }
@@ -89,61 +105,86 @@ const stopGeneration = () => {
     }
   }
 };
-const sendMessage = async () => {
-  // 空输入直接返回
-  if (!userInput.value.trim() && loading.value === true) return;
-  // 保存用户输入并清空输入框
-  const userMessage = userInput.value;
-  // 1. 先在界面上显示用户原始问题
-  messages.value.push({ role: "user", content: userMessage });
+async function sendMessage() {
+  if (!userInput.value.trim() || loading.value) return;
+
+  const userQuestion = userInput.value;
   userInput.value = "";
 
-  let context = "";
-  if (chunks.value.length > 0) {
-    const content = retrieveRelevantChunks(userMessage, 3);
-    if (content.length > 0) {
-      context = `以下是相关文档内容:\n\n${content.join("\n\n")}`;
-    }
-  }
-  // 3. 构建最终发给 AI 的用户消息内容（包含上下文）
-  const finalUserContent = context
-    ? `基于以下文档内容回答问题。\n\n${context}\n\n问题：${userMessage}`
-    : userMessage;
+  // 显示用户消息
+  messages.value.push({ role: "user", content: userQuestion });
 
-  // 添加用户消息+搜到的文档 到列表
-  const assistantMessageIndex = messages.value.length;
-  messages.value.push({ role: "assistant", content: "" });
-  isStreaming.value = true;
   loading.value = true;
-  abortController = new AbortController();
-  try {
-    const historyForAPI = messages.value.slice(0, -1); // 去掉最后一条空助手消息
-    historyForAPI[historyForAPI.length - 1] = {
-      role: "user",
-      content: finalUserContent,
-    };
 
-    await streamChat(
-      historyForAPI,
-      (content) => {
-        messages.value[assistantMessageIndex].content += content;
-      },
-      abortController.signal,
-    );
-    loading.value = false;
-  } catch (err: any) {
-    if (err.name === "AbortError") {
-      console.log("用户停止了生成");
-    } else {
-      console.error("流式请求失败", err);
-      messages.value[assistantMessageIndex].content = "⚠️ 出错：" + err.message;
+  // 深拷贝当前消息历史（不包括界面显示，仅用于 API 调用）
+  let currentMessages = messages.value.map((msg) => ({ ...msg }));
+
+  try {
+    let maxIterations = 5;
+    let finalAnswer = "";
+
+    while (maxIterations-- > 0) {
+      // 调用非流式工具 API
+      const response = await chatWithTools(currentMessages, tools);
+      const assistantMessage = response.choices[0].message;
+
+      // 将助手的原始回复加入历史（后续上下文需要）
+      currentMessages.push(assistantMessage);
+
+      // 检查是否有工具调用
+      if (
+        assistantMessage.tool_calls &&
+        assistantMessage.tool_calls.length > 0
+      ) {
+        // 执行每个工具调用
+        for (const tc of assistantMessage.tool_calls) {
+          const args = JSON.parse(tc.function.arguments || "{}");
+          const toolResult = await executeTool(tc.function.name, args);
+          const toolMessage = {
+            role: "tool",
+            content: toolResult,
+            tool_call_id: tc.id,
+          };
+          currentMessages.push(toolMessage);
+        }
+        // 继续循环，不在界面上显示中间消息
+        continue;
+      }
+
+      // 没有工具调用 => 最终回答
+      finalAnswer = assistantMessage.content;
+      // 在界面上添加一个空的助手消息
+      messages.value.push({ role: "assistant", content: "" });
+      const assistantMsgIndex = messages.value.length - 1;
+      // 模拟打字机效果逐字显示
+      await simulateTyping(assistantMsgIndex, finalAnswer);
+      break;
     }
+
+    if (maxIterations <= 0) {
+      messages.value.push({
+        role: "assistant",
+        content: "工具调用次数过多，已停止。",
+      });
+    }
+  } catch (error: any) {
+    console.error("Agent 错误:", error);
+    messages.value.push({
+      role: "assistant",
+      content: `出错：${error.message}`,
+    });
   } finally {
     loading.value = false;
-    isStreaming.value = false;
-    abortController = null;
   }
-};
+}
+
+// 模拟打字机效果
+async function simulateTyping(index: number, fullText: string) {
+  for (let i = 0; i <= fullText.length; i++) {
+    messages.value[index].content = fullText.slice(0, i);
+    await new Promise((resolve) => setTimeout(resolve, 15));
+  }
+}
 
 const escapeHtml = (str: string) => {
   const div = document.createElement("div");
@@ -199,10 +240,8 @@ const copyMessage = async (content: string) => {
         placeholder="输入消息..."
         :disabled="loading"
       />
-      <button v-if="!isStreaming" @click="sendMessage" :disabled="loading">
-        发送
-      </button>
-      <button v-else @click="stopGeneration" class="stop-btn">⏹️ 停止</button>
+      <button @click="sendMessage" :disabled="loading">发送</button>
+      <!-- <button v-else @click="stopGeneration" class="stop-btn">⏹️ 停止</button> -->
     </div>
   </div>
 </template>

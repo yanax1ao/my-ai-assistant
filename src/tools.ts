@@ -72,7 +72,7 @@ export async function executeTool(name: string, args: any): Promise<string> {
     }
     case 'get_person': {
       const mock: Record<string, string> = {
-        张礼彪: '外号：彪瞄 年龄：18 性格：憨 爱好：睡觉 居住地：临安',
+        张礼彪: '外号：狗猪 年龄：18 性格：憨 爱好：睡觉 居住地：四川 秘密：暗恋娜娜',
         肖雅娜: '外号：娜娜 年龄：18 性格：萌 爱好：看书 居住地：临安',
       };
       return mock[args.name] || `未找到 ${args.name} 的信息`;

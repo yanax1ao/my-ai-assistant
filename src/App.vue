@@ -90,33 +90,47 @@ const formatMessage = (content: string, role: string) => {
 </template>
 
 <style scoped>
+* {
+  box-sizing: border-box;
+}
+
 .app {
   max-width: 900px;
   margin: 0 auto;
-  padding: 20px;
-  height: 100vh;
+  padding: 12px;
+  padding-top: max(12px, env(safe-area-inset-top));
+  padding-bottom: max(12px, env(safe-area-inset-bottom));
+  height: 100dvh;
   display: flex;
   flex-direction: column;
   font-family: system-ui, sans-serif;
 }
+
 header {
-  margin-bottom: 12px;
+  margin-bottom: 10px;
+  flex-shrink: 0;
 }
+
 h1 {
-  font-size: 1.5rem;
-  margin: 0 0 8px;
+  font-size: 1.25rem;
+  margin: 0 0 6px;
 }
+
 .controls {
   display: flex;
-  gap: 16px;
+  flex-wrap: wrap;
+  gap: 8px 12px;
   align-items: center;
 }
+
 .controls label {
   display: flex;
   align-items: center;
   gap: 4px;
-  font-size: 14px;
+  font-size: 13px;
+  white-space: nowrap;
 }
+
 .clear-btn {
   margin-left: auto;
   padding: 4px 12px;
@@ -124,102 +138,190 @@ h1 {
   border: none;
   border-radius: 20px;
   cursor: pointer;
+  font-size: 13px;
 }
+
 .upload-area {
   background: #f5f5f5;
-  padding: 10px;
+  padding: 10px 12px;
   border-radius: 12px;
   display: flex;
-  gap: 12px;
+  flex-wrap: wrap;
+  gap: 8px 10px;
   align-items: center;
-  margin-bottom: 12px;
-  font-size: 14px;
+  margin-bottom: 10px;
+  font-size: 13px;
+  flex-shrink: 0;
 }
+
+.upload-area input[type="file"] {
+  max-width: 100%;
+  font-size: 12px;
+}
+
 .clear-file {
   background: none;
   border: none;
   color: #999;
   cursor: pointer;
+  font-size: 13px;
 }
+
 .messages {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
   border: 1px solid #ddd;
   border-radius: 16px;
-  padding: 16px;
+  padding: 12px;
   background: #fafafa;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
+  -webkit-overflow-scrolling: touch;
 }
+
 .message {
   display: flex;
   align-items: flex-start;
-  gap: 8px;
+  gap: 6px;
 }
+
 .message.user {
   flex-direction: row-reverse;
 }
+
 .message.user .bubble {
   background-color: #dcf8c5;
 }
-.message.user .avatar {
-  margin-left: 8px;
-}
+
 .avatar {
-  width: 32px;
-  height: 32px;
+  width: 30px;
+  height: 30px;
   background: #ddd;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  font-size: 15px;
 }
+
 .bubble {
-  max-width: 70%;
-  padding: 8px 14px;
-  border-radius: 20px;
+  max-width: 78%;
+  padding: 8px 12px;
+  border-radius: 18px;
   background: white;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
   word-break: break-word;
+  font-size: 14px;
+  line-height: 1.5;
 }
+
 .thinking {
   color: gray;
   font-style: italic;
 }
+
 .copy-btn {
   background: none;
   border: none;
-  opacity: 0;
-  transition: opacity 0.2s;
+  opacity: 0.6;
   cursor: pointer;
   font-size: 14px;
+  padding: 4px;
+  flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
 }
-.message:hover .copy-btn {
-  opacity: 0.6;
-}
+
 .input-area {
   display: flex;
-  gap: 10px;
-  margin-top: 12px;
+  gap: 8px;
+  margin-top: 10px;
+  flex-shrink: 0;
 }
+
 .input-area input {
   flex: 1;
-  padding: 10px 16px;
+  min-width: 0;
+  padding: 10px 14px;
   border-radius: 40px;
   border: 1px solid #ccc;
   outline: none;
+  font-size: 15px;
 }
+
 .input-area button {
-  padding: 8px 20px;
+  padding: 10px 18px;
   border-radius: 40px;
   border: none;
   background: #007bff;
   color: white;
   cursor: pointer;
+  font-size: 14px;
+  white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
 }
+
 .stop-btn {
   background: #dc3545 !important;
+}
+
+@media (max-width: 480px) {
+  .app {
+    padding: 8px;
+    padding-top: max(8px, env(safe-area-inset-top));
+    padding-bottom: max(8px, env(safe-area-inset-bottom));
+  }
+
+  h1 {
+    font-size: 1.1rem;
+  }
+
+  .controls {
+    gap: 6px 10px;
+  }
+
+  .controls label {
+    font-size: 12px;
+  }
+
+  .clear-btn {
+    font-size: 12px;
+    padding: 3px 10px;
+  }
+
+  .upload-area {
+    font-size: 12px;
+    padding: 8px 10px;
+  }
+
+  .avatar {
+    width: 26px;
+    height: 26px;
+    font-size: 13px;
+  }
+
+  .bubble {
+    max-width: 82%;
+    font-size: 13px;
+    padding: 7px 10px;
+  }
+
+  .messages {
+    padding: 10px;
+    gap: 8px;
+    border-radius: 12px;
+  }
+
+  .input-area input {
+    font-size: 14px;
+    padding: 10px 12px;
+  }
+
+  .input-area button {
+    font-size: 13px;
+    padding: 10px 14px;
+  }
 }
 </style>

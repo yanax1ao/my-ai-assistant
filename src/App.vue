@@ -66,9 +66,11 @@ const formatMessage = (content: string, role: string) => {
 
     <div class="messages">
       <div v-for="(msg, idx) in messages" :key="idx" :class="['message', msg.role]">
-        <div class="avatar">{{ msg.role === 'user' ? '👤' : '🤖' }}</div>
-        <div class="bubble" v-html="formatMessage(msg.content as string, msg.role)"></div>
-        <button class="copy-btn" @click="copyMessage(msg.content as string)">📋</button>
+        <div class="message-row">
+          <div class="avatar">{{ msg.role === 'user' ? '👤' : '🤖' }}</div>
+          <div class="bubble" v-html="formatMessage(msg.content as string, msg.role)"></div>
+        </div>
+        <button class="copy-btn" @click="copyMessage(msg.content as string)">📋 复制</button>
       </div>
       <div v-if="loading && !isStreaming" class="message assistant">
         <div class="avatar">🤖</div>
@@ -183,11 +185,22 @@ h1 {
 
 .message {
   display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+
+.message.user {
+  align-items: flex-end;
+}
+
+.message-row {
+  display: flex;
   align-items: flex-start;
   gap: 6px;
 }
 
-.message.user {
+.message.user .message-row {
   flex-direction: row-reverse;
 }
 
@@ -226,12 +239,18 @@ h1 {
 .copy-btn {
   background: none;
   border: none;
-  opacity: 0.6;
+  opacity: 0;
   cursor: pointer;
-  font-size: 14px;
-  padding: 4px;
+  font-size: 12px;
+  padding: 0 4px 2px 24px;
   flex-shrink: 0;
   -webkit-tap-highlight-color: transparent;
+  color: #999;
+  transition: opacity 0.15s;
+}
+
+.message:hover .copy-btn {
+  opacity: 0.7;
 }
 
 .input-area {

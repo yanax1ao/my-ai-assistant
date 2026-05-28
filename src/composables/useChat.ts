@@ -80,6 +80,8 @@ export function useChat() {
 
           // 没有工具调用：最终答案
           finalAnswer = assistantMsg.content || '';
+          // 隐藏 loading 状态，避免"思考中"气泡和答案气泡同时显示
+          loading.value = false;
           // 在界面上添加助手消息并模拟打字
           messages.value.push({ role: 'assistant', content: '' });
           const idx = messages.value.length - 1;

@@ -1,6 +1,6 @@
 import { ref } from 'vue';
 import { streamChat, chatWithTools } from '../api/deepseek';
-import { tools, executeTool } from '../tools';
+import { tools } from '../tools';
 
 export function useChat() {
   interface Message {
@@ -53,44 +53,16 @@ export function useChat() {
 
     try {
       if (enableAgent) {
-        // ========= Agent 模式（非流式 + 工具调用） =========
-        let maxIterations = 5;
-        let finalAnswer = '';
+        // 调用后端 API，后端会处理工具循环
+        const response = await chatWithTools(currentMessages, tools);
 
-        while (maxIterations-- > 0) {
-          const response = await chatWithTools(currentMessages, tools);
-          const assistantMsg = response.choices[0].message;
-
-          // 将 assistant 原始消息加入历史
-          currentMessages.push(assistantMsg);
-
-          // 如果有工具调用
-          if (assistantMsg.tool_calls && assistantMsg.tool_calls.length > 0) {
-            for (const tc of assistantMsg.tool_calls) {
-              const args = JSON.parse(tc.function.arguments || '{}');
-              const toolResult = await executeTool(tc.function.name, args);
-              currentMessages.push({
-                role: 'tool',
-                content: toolResult,
-                tool_call_id: tc.id,
-              });
-            }
-            continue; // 继续下一轮
-          }
-
-          // 没有工具调用：最终答案
-          finalAnswer = assistantMsg.content || '';
-          // 隐藏 loading 状态，避免"思考中"气泡和答案气泡同时显示
-          loading.value = false;
-          // 在界面上添加助手消息并模拟打字
-          messages.value.push({ role: 'assistant', content: '' });
-          const idx = messages.value.length - 1;
-          await simulateTyping(idx, finalAnswer);
-          break;
-        }
-        if (maxIterations <= 0) {
-          messages.value.push({ role: 'assistant', content: '工具调用次数过多，已停止。' });
-        }
+        // 后端返回的是最终答案字符串
+        const finalAnswer = response.content || '';
+        // 先关 loading（去掉思考气泡），再添加助手气泡进行打字
+        loading.value = false;
+        messages.value.push({ role: 'assistant', content: '' });
+        const idx = messages.value.length - 1;
+        await simulateTyping(idx, finalAnswer);
       } else {
         // ========= 普通流式对话（无工具） =========
         messages.value.push({ role: 'assistant', content: '' });

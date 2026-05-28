@@ -49,35 +49,20 @@ export const tools = [
       },
     },
   },
+  {
+    type: 'function',
+    function: {
+      name: 'send_email',
+      description: '发送一封电子邮件。需要提供收件人地址、主题、正文内容。',
+      parameters: {
+        type: 'object',
+        properties: {
+          to: { type: 'string', description: '收件人邮箱地址' },
+          subject: { type: 'string', description: '邮件主题' },
+          body: { type: 'string', description: '邮件正文' },
+        },
+        required: ['to', 'subject', 'body'],
+      },
+    },
+  },
 ];
-
-export async function executeTool(name: string, args: any): Promise<string> {
-  switch (name) {
-    case 'get_current_time':
-      return new Date().toLocaleString();
-    case 'calculate':
-      try {
-        // 注意：仅用于学习，生产环境请用 math.js 等安全库
-        return `计算结果：${eval(args.expression)}`;
-      } catch (e: any) {
-        return `计算错误：${e.message}`;
-      }
-    case 'get_weather': {
-      const mock: Record<string, string> = {
-        杭州: '晴天 25°C 湿度60%',
-        北京: '多云 28°C 湿度40%',
-        上海: '小雨 22°C 湿度85%',
-      };
-      return mock[args.city] || `未找到 ${args.city} 的天气`;
-    }
-    case 'get_person': {
-      const mock: Record<string, string> = {
-        张礼彪: '外号：狗猪 年龄：18 性格：憨 爱好：睡觉 居住地：四川 秘密：暗恋娜娜',
-        肖雅娜: '外号：娜娜 年龄：18 性格：萌 爱好：看书 居住地：临安',
-      };
-      return mock[args.name] || `未找到 ${args.name} 的信息`;
-    }
-    default:
-      return `未知工具 ${name}`;
-  }
-}

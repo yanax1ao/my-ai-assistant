@@ -38,12 +38,14 @@ export async function streamChat(
   }
 }
 
-export async function chatWithTools(messages: any[], tools: any[]): Promise<any> {
+export async function chatWithTools(messages: any[], tools: any[]): Promise<{ content: string }> {
   const response = await fetch(`${BACKEND_URL}/api/chat`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ messages, tools }),
   });
-  if (!response.ok) throw new Error(`HTTP ${response.status}`);
-  return response.json();
+  const data = await response.json();
+
+  if (data.error) throw new Error(data.error);
+  return { content: data.content };
 }

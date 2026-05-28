@@ -182,7 +182,7 @@ const formatMessage = (content: string, role: string) => {
   display: flex;
   flex-direction: column;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  background: linear-gradient(180deg, #fff5f9 0%, #fff0f5 40%, #fce7f3 100%);
+  background: linear-gradient(180deg, #f4f7fb 0%, #eef2ff 40%, #e0e7ff 100%);
   position: relative;
   overflow: hidden;
 }
@@ -237,7 +237,7 @@ const formatMessage = (content: string, role: string) => {
 .brand h1 {
   font-size: 1.15rem;
   font-weight: 700;
-  color: #831843;
+  color: #1E3A5F;
   letter-spacing: -0.01em;
 }
 
@@ -267,13 +267,13 @@ const formatMessage = (content: string, role: string) => {
   width: 34px;
   height: 20px;
   border-radius: 20px;
-  background: #e4d4dc;
+  background: #d4dce4;
   position: relative;
   transition: background 0.25s;
 }
 
 .toggle input:checked + .toggle-track {
-  background: #F472B6;
+  background: #5B8DEF;
 }
 
 .toggle-thumb {
@@ -294,7 +294,7 @@ const formatMessage = (content: string, role: string) => {
 
 .toggle-label {
   font-size: 12px;
-  color: #9d7a8b;
+  color: #7a8d9d;
   font-weight: 500;
 }
 
@@ -304,8 +304,8 @@ const formatMessage = (content: string, role: string) => {
   height: 34px;
   border-radius: 10px;
   border: none;
-  background: #fdf2f8;
-  color: #d8a3bb;
+  background: #f2f5ff;
+  color: #a3b8d8;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -314,8 +314,8 @@ const formatMessage = (content: string, role: string) => {
 }
 
 .btn-clear:hover {
-  background: #fce7f3;
-  color: #be185d;
+  background: #e7eeff;
+  color: #1E3A5F;
 }
 
 /* ── Upload Bar ── */
@@ -325,7 +325,7 @@ const formatMessage = (content: string, role: string) => {
   gap: 10px;
   padding: 8px 14px;
   background: rgba(255,255,255,.65);
-  border: 1px solid #f5e1eb;
+  border: 1px solid #e1ebf5;
   border-radius: 14px;
   margin-bottom: 12px;
   flex-shrink: 0;
@@ -357,19 +357,19 @@ const formatMessage = (content: string, role: string) => {
   gap: 4px;
   padding: 7px 16px;
   border-radius: 10px;
-  background: #F472B6;
+  background: #5B8DEF;
   color: #fff;
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
   transition: background .15s, box-shadow .15s, transform .15s;
-  box-shadow: 0 2px 6px rgba(244,114,182,.3);
+  box-shadow: 0 2px 6px rgba(91,141,239,.3);
 }
 
 .file-btn:hover {
-  background: #EC4899;
-  box-shadow: 0 4px 12px rgba(244,114,182,.4);
+  background: #3B72DB;
+  box-shadow: 0 4px 12px rgba(91,141,239,.4);
   transform: translateY(-1px);
 }
 
@@ -380,7 +380,7 @@ const formatMessage = (content: string, role: string) => {
 .file-name {
   flex: 1;
   font-size: 12px;
-  color: #c9a0b5;
+  color: #a0b0c9;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -392,7 +392,7 @@ const formatMessage = (content: string, role: string) => {
   border-radius: 6px;
   border: none;
   background: none;
-  color: #d0a7bb;
+  color: #a7bdd0;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -412,7 +412,7 @@ const formatMessage = (content: string, role: string) => {
   border-radius: 20px;
   padding: 28px 20px 20px;
   background: #fff;
-  box-shadow: 0 1px 3px rgba(190,24,93,.04), 0 4px 24px rgba(190,24,93,.06);
+  box-shadow: 0 1px 3px rgba(59,114,219,.04), 0 4px 24px rgba(59,114,219,.06);
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -423,7 +423,7 @@ const formatMessage = (content: string, role: string) => {
 
 .chat-panel::-webkit-scrollbar { width: 4px; }
 .chat-panel::-webkit-scrollbar-track { background: transparent; }
-.chat-panel::-webkit-scrollbar-thumb { background: #fce7f3; border-radius: 4px; }
+.chat-panel::-webkit-scrollbar-thumb { background: #e7eeff; border-radius: 4px; }
 
 /* ── Cat Ears Decoration ── */
 .cat-ears {
@@ -443,7 +443,7 @@ const formatMessage = (content: string, role: string) => {
   border-left: 14px solid transparent;
   border-right: 14px solid transparent;
   border-bottom: 20px solid #fff;
-  filter: drop-shadow(0 -2px 2px rgba(190,24,93,.08));
+  filter: drop-shadow(0 -2px 2px rgba(59,114,219,.08));
   position: relative;
 }
 
@@ -456,7 +456,7 @@ const formatMessage = (content: string, role: string) => {
   height: 0;
   border-left: 8px solid transparent;
   border-right: 8px solid transparent;
-  border-bottom: 12px solid #fce7f3;
+  border-bottom: 12px solid #e7eeff;
 }
 
 /* ── Empty State ── */
@@ -504,13 +504,13 @@ const formatMessage = (content: string, role: string) => {
 
 .empty-text {
   font-size: 16px;
-  color: #be185d;
+  color: #1E3A5F;
   font-weight: 600;
 }
 
 .empty-sub {
   font-size: 13px;
-  color: #d8a3bb;
+  color: #a3b8d8;
 }
 
 /* ── Messages ── */
@@ -545,7 +545,7 @@ const formatMessage = (content: string, role: string) => {
   width: 36px;
   height: 36px;
   border-radius: 14px;
-  background: linear-gradient(135deg, #FCE7F3 0%, #FBCFE8 100%);
+  background: linear-gradient(135deg, #DBEAFE 0%, #BFDBFE 100%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -554,7 +554,7 @@ const formatMessage = (content: string, role: string) => {
 }
 
 .msg.user .avatar {
-  background: linear-gradient(135deg, #F472B6 0%, #EC4899 100%);
+  background: linear-gradient(135deg, #5B8DEF 0%, #3B72DB 100%);
 }
 
 .cat-avatar {
@@ -570,16 +570,16 @@ const formatMessage = (content: string, role: string) => {
   max-width: 72%;
   padding: 10px 16px;
   border-radius: 18px;
-  background: #fdf2f8;
+  background: #f2f5ff;
   word-break: break-word;
   font-size: 14px;
   line-height: 1.65;
-  color: #5c3048;
+  color: #2C3E5C;
   position: relative;
 }
 
 .msg.user .bubble {
-  background: linear-gradient(135deg, #F472B6 0%, #DB2777 100%);
+  background: linear-gradient(135deg, #5B8DEF 0%, #2563C7 100%);
   color: #fff;
   border-bottom-right-radius: 8px;
 }
@@ -597,7 +597,7 @@ const formatMessage = (content: string, role: string) => {
 }
 
 .thinking-text {
-  color: #d8a3bb;
+  color: #a3b8d8;
   font-size: 13px;
   font-weight: 500;
 }
@@ -630,13 +630,13 @@ const formatMessage = (content: string, role: string) => {
   cursor: pointer;
   font-size: 11px;
   padding: 2px 8px;
-  color: #d8a3bb;
+  color: #a3b8d8;
   transition: opacity .15s, color .15s;
   border-radius: 4px;
 }
 
 .copy-btn:hover {
-  color: #F472B6;
+  color: #5B8DEF;
 }
 
 .msg:hover .copy-btn {
@@ -662,14 +662,14 @@ const formatMessage = (content: string, role: string) => {
   background: #fff;
   border-radius: 20px;
   padding: 4px 4px 4px 18px;
-  box-shadow: 0 1px 3px rgba(190,24,93,.05), 0 4px 16px rgba(190,24,93,.06);
-  border: 1px solid #f5e1eb;
+  box-shadow: 0 1px 3px rgba(59,114,219,.05), 0 4px 16px rgba(59,114,219,.06);
+  border: 1px solid #e1ebf5;
   transition: border-color .2s, box-shadow .2s;
 }
 
 .input-wrapper:focus-within {
-  border-color: #FBCFE8;
-  box-shadow: 0 1px 3px rgba(244,114,182,.1), 0 4px 20px rgba(244,114,182,.1);
+  border-color: #BFDBFE;
+  box-shadow: 0 1px 3px rgba(91,141,239,.1), 0 4px 20px rgba(91,141,239,.1);
 }
 
 .input-field {
@@ -679,12 +679,12 @@ const formatMessage = (content: string, role: string) => {
   border: none;
   outline: none;
   font-size: 14px;
-  color: #5c3048;
+  color: #2C3E5C;
   background: transparent;
 }
 
 .input-field::placeholder {
-  color: #e8c4d5;
+  color: #c4d4e8;
 }
 
 .btn-send,
@@ -703,12 +703,12 @@ const formatMessage = (content: string, role: string) => {
 }
 
 .btn-send {
-  background: #F472B6;
-  box-shadow: 0 2px 8px rgba(244,114,182,.35);
+  background: #5B8DEF;
+  box-shadow: 0 2px 8px rgba(91,141,239,.35);
 }
 
 .btn-send:hover:not(:disabled) {
-  background: #EC4899;
+  background: #3B72DB;
   transform: scale(1.08);
 }
 
@@ -723,12 +723,12 @@ const formatMessage = (content: string, role: string) => {
 }
 
 .btn-stop {
-  background: #fdf2f8;
+  background: #f2f5ff;
   color: #ef4444;
 }
 
 .btn-stop:hover {
-  background: #fee2e2;
+  background: #dbeafe;
 }
 
 /* ── Responsive ── */

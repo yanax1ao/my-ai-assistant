@@ -35,6 +35,20 @@ export const tools = [
       },
     },
   },
+  {
+    type: 'function',
+    function: {
+      name: 'get_person',
+      description: '获取某个人的信息',
+      parameters: {
+        type: 'object',
+        properties: {
+          name: { type: 'string', description: '姓名，如 "张三"' },
+        },
+        required: ['name'],
+      },
+    },
+  },
 ];
 
 export async function executeTool(name: string, args: any): Promise<string> {
@@ -55,6 +69,13 @@ export async function executeTool(name: string, args: any): Promise<string> {
         上海: '小雨 22°C 湿度85%',
       };
       return mock[args.city] || `未找到 ${args.city} 的天气`;
+    }
+    case 'get_person': {
+      const mock: Record<string, string> = {
+        张礼彪: '外号：彪瞄 年龄：18 性格：憨 爱好：睡觉 居住地：临安',
+        肖雅娜: '外号：娜娜 年龄：18 性格：萌 爱好：看书 居住地：临安',
+      };
+      return mock[args.name] || `未找到 ${args.name} 的信息`;
     }
     default:
       return `未知工具 ${name}`;

@@ -1,27 +1,18 @@
-const API_URL = 'https://api.deepseek.com/v1/chat/completions';
-const API_KEY = import.meta.env.VITE_DEEPSEEK_API_KEY;
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
 
-// 普通流式对话（不带工具）
 export async function streamChat(
   messages: Array<{ role: string; content: string }>,
   onChunk: (chunk: string) => void,
   signal?: AbortSignal
 ): Promise<void> {
-  const response = await fetch(API_URL, {
+  const response = await fetch(`${BACKEND_URL}/api/chat/stream`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${API_KEY}`,
-    },
-    body: JSON.stringify({
-      model: 'deepseek-chat',
-      messages: messages.map((m) => ({ ...m, type: 'text' })),
-      stream: true,
-    }),
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ messages }),
     signal,
   });
 
-  if (!response.ok) throw new Error(`API error: ${response.status}`);
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
   const reader = response.body?.getReader();
   const decoder = new TextDecoder('utf-8');
@@ -47,25 +38,12 @@ export async function streamChat(
   }
 }
 
-// 非流式工具调用（支持 tools）
 export async function chatWithTools(messages: any[], tools: any[]): Promise<any> {
-  const response = await fetch(API_URL, {
+  const response = await fetch(`${BACKEND_URL}/api/chat`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${API_KEY}`,
-    },
-    body: JSON.stringify({
-      model: 'deepseek-chat',
-      messages: messages.map((m) => {
-        const newMsg = { ...m };
-        if (newMsg.role !== 'tool' && !newMsg.type) newMsg.type = 'text';
-        return newMsg;
-      }),
-      tools,
-      stream: false,
-    }),
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ messages, tools }),
   });
-  if (!response.ok) throw new Error(`API error: ${response.status}`);
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
   return response.json();
 }

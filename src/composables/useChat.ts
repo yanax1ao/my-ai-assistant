@@ -14,7 +14,13 @@ export function useChat() {
   const loading = ref(false);
   const isStreaming = ref(false);
   let abortController: AbortController | null = null;
-
+  if (messages.value.length === 0) {
+    messages.value.push({
+      role: 'assistant',
+      content:
+        '你好！我是你的 AI 助手。我能帮你做这些事情：\n- 查询当前时间\n- 数学计算\n- 查询天气（模拟）\n- 发送邮件（需要配置）\n\n直接告诉我你的需求吧！',
+    });
+  }
   // 模拟打字机效果
   const simulateTyping = async (index: number, fullText: string, onFinish?: () => void) => {
     for (let i = 0; i <= fullText.length; i++) {

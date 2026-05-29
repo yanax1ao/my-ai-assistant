@@ -425,7 +425,6 @@ body {
   position: relative;
   overflow-wrap: break-word;
   word-break: break-word;
-  max-width: 75%;
 }
 
 .bubble > *:first-child {
